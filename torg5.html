@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Игровой дашборд</title>
+  <!-- Подключение TailwindCSS через CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center">
+
+  <!-- Навбар -->
+  <nav class="fixed top-0 left-0 w-full bg-gray-800 p-4 flex justify-between items-center">
+    <button id="openQuestModal" class="text-xl text-yellow-500 hover:text-yellow-400">?</button>
+    <div class="text-lg font-bold">Личный кабинет</div>
+    <button id="openAchievementsModal" class="text-xl text-blue-500 hover:text-blue-400">⚙️</button>
+  </nav>
+
+  <!-- Модальное окно с диалогом -->
+  <div id="questModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-gray-700 p-6 rounded-lg shadow-lg max-w-md w-full relative">
+      <button id="closeQuestModal" class="absolute top-2 right-2 text-red-500 hover:text-red-400 text-xl">&times;</button>
+      <h2 class="text-xl font-bold mb-4">Торговец:</h2>
+      <div id="dialogContent">
+        <p>Приветствую! Что скажешь?</p>
+        <div class="mt-4 space-y-2">
+          <button id="greetButton" class="w-full bg-blue-500 hover:bg-blue-600 p-2 rounded">Привет</button>
+          <button id="howAreYouButton" class="w-full bg-green-500 hover:bg-green-600 p-2 rounded">Как дела?</button>
+          <button id="listenButton" class="w-full bg-purple-500 hover:bg-purple-600 p-2 rounded">Слушай что скажу!</button>
+          <button id="byeButton" class="w-full bg-red-500 hover:bg-red-600 p-2 rounded">Пока</button>
+        </div>
+      </div>
+      <button id="backButton" class="hidden mt-4 w-full bg-gray-500 hover:bg-gray-600 p-2 rounded">Назад</button>
+    </div>
+  </div>
+
+  <!-- Модальное окно с достижением -->
+  <div id="achievementModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-gray-700 p-6 rounded-lg shadow-lg max-w-md w-full">
+      <h2 class="text-xl font-bold mb-4">Достижение получено!</h2>
+      <p>Вы рассказали торговцу о своей ограниченности!</p>
+      <button id="achievementOkButton" class="mt-4 w-full bg-green-500 hover:bg-green-600 p-2 rounded">Ок</button>
+    </div>
+  </div>
+
+  <!-- Модальное окно с списком достижений -->
+  <div id="achievementsListModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-gray-700 p-6 rounded-lg shadow-lg max-w-md w-full">
+      <h2 class="text-xl font-bold mb-4">Достижения:</h2>
+      <div class="flex flex-wrap gap-4 justify-center">
+        <div class="text-center">
+          <div id="achievementIcon1" class="w-12 h-12 bg-gray-500 rounded-full flex items-center justify-center mb-2">
+            🌍
+          </div>
+          <p class="text-sm">Открытие мира</p>
+        </div>
+        <div class="text-center">
+          <div id="achievementIcon2" class="w-12 h-12 bg-gray-500 rounded-full flex items-center justify-center mb-2">
+            💾
+          </div>
+          <p class="text-sm">Резервные копии</p>
+        </div>
+        <div class="text-center">
+          <div id="achievementIcon3" class="w-12 h-12 bg-gray-500 rounded-full flex items-center justify-center mb-2">
+            💸
+          </div>
+          <p class="text-sm">Ограничение int16</p>
+        </div>
+      </div>
+      <button id="closeAchievementsModal" class="mt-4 w-full bg-red-500 hover:bg-red-600 p-2 rounded">Закрыть</button>
+    </div>
+  </div>
+
+  <script>
+    // Состояние для отслеживания получения достижения
+    let achievementReceived = false;
+
+    // Открытие модального окна с диалогом
+    document.getElementById('openQuestModal').addEventListener('click', () => {
+      document.getElementById('questModal').classList.remove('hidden');
+      setupDialogListeners();
+    });
+
+    // Закрытие модального окна с диалогом
+    const closeQuestModal = () => {
+      document.getElementById('questModal').classList.add('hidden');
+      resetDialog();
+    };
+
+    // Закрытие модального окна по кнопке "крестик"
+    document.getElementById('closeQuestModal').addEventListener('click', closeQuestModal);
+
+    // Сброс диалога к начальному состоянию
+    const resetDialog = () => {
+      document.getElementById('dialogContent').innerHTML = `
+        <p>Приветствую! Что скажешь?</p>
+        <div class="mt-4 space-y-2">
+          <button id="greetButton" class="w-full bg-blue-500 hover:bg-blue-600 p-2 rounded">Привет</button>
+          <button id="howAreYouButton" class="w-full bg-green-500 hover:bg-green-600 p-2 rounded">Как дела?</button>
+          <button id="listenButton" class="w-full bg-purple-500 hover:bg-purple-600 p-2 rounded">Слушай что скажу!</button>
+          <button id="byeButton" class="w-full bg-red-500 hover:bg-red-600 p-2 rounded">Пока</button>
+        </div>
+      `;
+      document.getElementById('backButton').classList.add('hidden');
+    };
+
+    // Настройка слушателей для кнопок диалога
+    const setupDialogListeners = () => {
+      document.getElementById('greetButton')?.addEventListener('click', () => {
+        setDialogContent('Привет!', true);
+      });
+
+      document.getElementById('howAreYouButton')?.addEventListener('click', () => {
+        setDialogContent('Дела идут, контора пишет, кассир деньги выдаёт.', true);
+      });
+
+      document.getElementById('listenButton')?.addEventListener('click', () => {
+        const humorText = "Я ограничен int16... Это как быть богачом, но только в игре!";
+        setDialogContent('Слушаю.', true, `
+          <button id="tellLimitButton" class="w-full bg-yellow-500 hover:bg-yellow-600 p-2 rounded">${humorText}</button>
+        `);
+
+        // Добавляем обработчик для новой кнопки
+        document.getElementById('tellLimitButton')?.addEventListener('click', () => {
+          if (!achievementReceived) {
+            achievementReceived = true;
+            showAchievementModal();
+            updateAchievementIcons();
+          } else {
+            setDialogContent('Круто!', true);
+          }
+        });
+      });
+
+      document.getElementById('byeButton')?.addEventListener('click', closeQuestModal);
+    };
+
+    // Установка содержимого диалога
+    const setDialogContent = (message, showBackButton, additionalButtons = '') => {
+      document.getElementById('dialogContent').innerHTML = `
+        <p>${message}</p>
+        ${additionalButtons}
+      `;
+      if (showBackButton) {
+        document.getElementById('backButton').classList.remove('hidden');
+      } else {
+        document.getElementById('backButton').classList.add('hidden');
+      }
+    };
+
+    // Показать модальное окно с достижением
+    const showAchievementModal = () => {
+      document.getElementById('achievementModal').classList.remove('hidden');
+    };
+
+    // Закрытие модального окна с достижением
+    document.getElementById('achievementOkButton').addEventListener('click', () => {
+      document.getElementById('achievementModal').classList.add('hidden');
+      setDialogContent('Круто!', true);
+    });
+
+    // Кнопка "Назад"
+    document.getElementById('backButton').addEventListener('click', () => {
+      resetDialog();
+      setupDialogListeners();
+    });
+
+    // Открытие модального окна со списком достижений
+    document.getElementById('openAchievementsModal').addEventListener('click', () => {
+      document.getElementById('achievementsListModal').classList.remove('hidden');
+    });
+
+    // Закрытие модального окна со списком достижений
+    document.getElementById('closeAchievementsModal').addEventListener('click', () => {
+      document.getElementById('achievementsListModal').classList.add('hidden');
+    });
+
+    // Обновление иконок достижений
+    const updateAchievementIcons = () => {
+      document.getElementById('achievementIcon3').classList.remove('bg-gray-500');
+      document.getElementById('achievementIcon3').classList.add('bg-green-500');
+    };
+
+    // Инициализация слушателей
+    setupDialogListeners();
+  </script>
+</body>
+</html>
